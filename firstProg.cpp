@@ -9,6 +9,37 @@
 #include<bits/stdc++.h>
 
 #define Max 4096
+
+using namespace std;
+void displayPrompt(){
+	cout<<"Prompt$ ";
+}
+void readDirectory(vector<string> tokens,char *temp[]){
+	if(tokens.size() == 1 || tokens[1] == "~") chdir("/home");
+	else chdir(temp[1]);
+}
+bool checkRedirectCrietria(vector<string> tokens)
+{
+	if(tokens.size() >= 3 && (tokens[tokens.size()-2] == ">>" ||	tokens[tokens.size()-2] == ">")) return true;
+		else return false;
+}
+void executeCommand(char *temp[]){
+	if(execvp(temp[0],temp) < 0)
+		printf("unknown command\n");
+	else execvp(temp[0],temp);
+}
+void redirectIOToFile(vector<string> tokens,char *temp[]){
+	string fileName = tokens[tokens.size() -1 ];
+	int fd;
+	if(tokens[tokens.size()-2] == ">>")
+		fd= open(fileName.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+	else
+		fd= open(fileName.c_str(), O_WRONLY | O_APPEND , S_IRUSR | S_IWUSR);
+	if(fd < 0) fd = open(fileName.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+	temp[tokens.size()-2] = NULL; temp[tokens.size()-1]=NULL;
+	dup2(fd,STDOUT_FILENO);
+	executeCommand(temp);
+} 
 using namespace std;
 int main(){
 	int pId,x;
@@ -17,33 +48,24 @@ int main(){
 		pId = fork();
 		
 		if( pId == 0 ){
-			cout<<"Prompt$ ";
-		string readChar;
-		//const char * binaryPath = readChar.c_str();
-		vector<string> argStrings; 
+		displayPrompt();
+		string readChar; 
 		vector<string> tokens;
 		char *temp[Max];
 		int i=0;
-		//cout<<readChar;
+		getline(cin, readChar);
 		stringstream s(readChar); 
   	  	string word; 
-		getline(cin, readChar);
 	          while (s >> word) 
-        	  {			
-			/*cout<<"word "<<word<<endl;
-			word += '\0';			
-			temp[i] = const_cast<char*> (word.c_str());
-			cout<<"inside loop"<<i<<" "<<temp[i]<<endl;
-			i++;
-			cout<<"temp[0]"<<temp[0]<<endl;*/
-			/*argStrings.push_back(word);
-			temp.push_back(const_cast<char *>(argStrings.back().c_str()));*/
-			tokens.push_back(word);
-		  }
-			 for (auto it = tokens.begin(); it != tokens.end(); ++it)
+        	  tokens.push_back(word);
+		 for (auto it = tokens.begin(); it != tokens.end(); ++it)
     				temp[i++] = const_cast<char*>(it->c_str());
-  				temp[i] = NULL;			
-	 	  execvp(temp[0],temp);
+  				temp[i] = NULL;
+				if(checkRedirectCrietria(tokens)){
+					redirectIOToFile(tokens,temp);
+				} 
+				else if(tokens[0]=="cd") readDirectory(tokens,temp);
+				else executeCommand(temp);
 		}
 		else{
 			wait(0);		
