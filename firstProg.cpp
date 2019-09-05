@@ -12,6 +12,7 @@
 
 using namespace std;
 vector<int> bgProcessId;
+vector<pair<string,string>> aliasesCreated;
 void displayPrompt(){
 	cout<<"Prompt$ ";
 }
@@ -128,17 +129,106 @@ void executePipe(vector<string> commandForPipes){
 		}
 	}
 }
-using namespace std;
+void createBashrc(string readFile){
+	uid_t uid = getuid();
+	int fd1, fd2;
+	vector<string> userLine; 
+	int j=0;
+	char buffer;
+	char path[4096];
+	string readLine="";
+	long int n1;
+	string outFile = "bashrc.txt";
+	fd1 = open(readFile.c_str(), O_RDONLY | O_CREAT);
+	if(readFile == "/etc/passwd"){
+		fd2 = open(outFile.c_str(),O_CREAT|O_APPEND|O_WRONLY, 0700);
+		while ( (n1 = read(fd1, &buffer, 1)) > 0){
+		       	if(buffer != '\n') {readLine += buffer;}
+			else {
+				stringstream s(readLine);
+				string word;
+				while(getline(s, word, ':')) userLine.push_back(word);
+				if(userLine[2] == to_string(uid)){
+					string toFile = "HOME = "+ userLine[5] +"\n"+"USER = "+ userLine[0] +"\n";
+					if(write(fd2, toFile.c_str(), toFile.size()) != toFile.size()){
+						write(2, "There was an error writing to testfile.txt\n", 43);			
+					}
+					close(fd2);
+					break;
+				}
+				readLine="";
+				userLine.clear();	
+			}	
+    		}
+	}
+	else if(readFile == "/etc/hostname"){
+		fd2 = open(outFile.c_str(),O_CREAT|O_APPEND|O_WRONLY, 0700);
+		while ( (n1 = read(fd1, &buffer, 1)) > 0){
+		       	if(buffer != '\n') {readLine += buffer;}
+			else{
+				string toFile = "HOSTNAME = "+ readLine +"\n";
+				if(write(fd2, toFile.c_str(), toFile.size()) != toFile.size()){
+					write(2, "There was an error writing to testfile.txt\n", 43);			
+				}
+				close(fd2);
+				break;	
+			}
+		}
+	}
+	else{
+	fd2 = open(outFile.c_str(),O_CREAT|O_APPEND|O_WRONLY, 0700);
+		while ( (n1 = read(fd1, path, 4096)) > 0){
+		       	if(write(fd2, path, n1) != n1){
+           		 write(2, "There was an error writing to testfile.txt\n", 43);	
+            		exit(3);
+        		}
+		}
+	}
+
+}
+void readBashRc(){
+	string readFile="bashrc.txt";	
+	int fd1 = open(readFile.c_str(), O_RDONLY);
+	vector<string> userLine; 
+	char buffer;
+	string readLine="";
+	long int n1;
+	while ( (n1 = read(fd1, &buffer, 1)) > 0){
+		       	if(buffer != '\n') {readLine += buffer;}
+			else {
+				stringstream s(readLine);
+				string word;
+				while(getline(s, word, '=')) userLine.push_back(word);
+				if(userLine[0] == "PATH") ;
+				else if(userLine[0] == "HOME") ;
+				else if(userLine[0] == "HOSTNAME");
+				else if(userLine[0] == "USER");			
+				readLine="";
+				userLine.clear();	
+			}	
+    		}
+}
 int main(){
 	int background =0,status,pId;
 	signal(SIGINT, childSignalHandler);
 	signal(SIGTTOU, childSignalHandler);
 	signal(SIGCONT, childSignalHandler);
+	string readFile = "bashrc.txt";
+	int fd1 = open(readFile.c_str(), O_RDONLY);
+	if(fd1 == -1){
+		createBashrc("/etc/passwd");
+		createBashrc("/etc/hostname");
+		createBashrc("/etc/environment");
+	}
+	close(fd1);
+	readBashRc();
+	//open file and set variables
 	while(1){
 		background = 0; 
 		vector<string> tokens;
 		vector<string> commandForPipes;
 		char *temp[Max];
+		int count = 0;
 		string readChar;
 		displayPrompt();
 		getline(cin, readChar);
@@ -151,29 +241,45 @@ int main(){
 			if(checkBackground(tokens)) {
 				background =1; 
 			}
-				pId = fork();
+			pId = fork();
 			if( pId == 0 ){
-				if(background == 1){
-					//cout<<"closing file descriprors"<<endl;			
-					//temp[tokens.size()-1] = NULL;			
-					//string fileName = "/dev/null";
-					//int fd = open(fileName.c_str(),O_RDONLY);
-					//dup2(fd,STDIN_FILENO);
-					//dup2(fd,STDOUT_FILENO);
-					//bgProcessId.push_back(pId);
-					//setpgid(pId, pId); // Either setpgid call will succeed, depending on how the processes are 						scheduled.
-  					//tcsetpgrp(0, pId);
-					//signal(SIGTTOU, childSignalHandler);
+				for(int j=0;j< tokens.size();j++){
+					for(int i=0;i< aliasesCreated.size();i++){
+						if(tokens[j] == aliasesCreated[i].first){
+							tokens[j] = aliasesCreated[i].second;
+							count++;
+						}
+					}		
+				}	
+				if(count > 1){
+					cout<<"Unknown Command"<<endl;
 				}
-				else if(checkRedirectCrietria(tokens)){
-					redirectIOToFile(tokens,temp);
-					} 	
-				else if(tokens[0] == "fg"){
-					cout<<"hi";			
-					//foregroundHandler(tokens);		
+				else{						
+					if(background == 1){
+						//cout<<"closing file descriprors"<<endl;			
+						//temp[tokens.size()-1] = NULL;			
+						//string fileName = "/dev/null";
+						//int fd = open(fileName.c_str(),O_RDONLY);
+						//dup2(fd,STDIN_FILENO);
+						//dup2(fd,STDOUT_FILENO);
+						//bgProcessId.push_back(pId);
+						//setpgid(pId, pId); // Either setpgid call will succeed, depending on how the processes 							are scheduled.
+  						//tcsetpgrp(0, pId);
+						//signal(SIGTTOU, childSignalHandler);
 					}
-				else if(tokens[0]=="cd") readDirectory(tokens,temp);
-				else executeCommand(temp);
+					else if(tokens[0] == "alias"){
+						tokens[3].erase(remove( tokens[3].begin(), tokens[3].end(), 							'\"' ),tokens[3].end());					
+						aliasesCreated.push_back(make_pair(tokens[1],tokens[3]));
+					}
+					else if(checkRedirectCrietria(tokens)){
+						redirectIOToFile(tokens,temp);
+						} 	
+					else if(tokens[0] == "fg"){			
+						//foregroundHandler(tokens);		
+						}
+					else if(tokens[0]=="cd") readDirectory(tokens,temp);
+					else executeCommand(temp);
+				}
 			}
 			else {
 				if (background) {
