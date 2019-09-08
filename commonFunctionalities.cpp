@@ -9,19 +9,16 @@
 #include<bits/stdc++.h>
 #include<signal.h>
 #include "commonFunctionalities.h"
+#include<termios.h>
 #define Max 4096
 using namespace std;
-string getInput(){
-	string readChar;	
-	getline(cin, readChar);
-	/*string fileLine = readChar+"\n";
-	int fd2 = open(outFile.c_str(),O_CREAT|O_APPEND|O_WRONLY, 0700);
-	if(write(fd2, fileLine.c_str(), readChar.size()) != readChar.size()){
-      		 write(2, "There was an error writing to testfile.txt\n", 43);	
-       		exit(3);
-        }
-	close(fd2);*/
-	return readChar;
+void enableRawInputMode(){
+	struct termios oldIO;
+	struct termios newIO;
+	tcgetattr(STDIN_FILENO,&oldIO);
+	newIO = oldIO;
+	newIO.c_lflag &= ~(ICANON);
+	tcsetattr(STDIN_FILENO,TCSANOW,&newIO);
 }
 void displayPrompt(){
 	uid_t uid = getuid();

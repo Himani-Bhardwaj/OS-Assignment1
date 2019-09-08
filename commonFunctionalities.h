@@ -10,7 +10,7 @@
 #include<signal.h>
 #define Max 4096
 using namespace std;
-string getInput();
+void enableRawInputMode();
 void displayPrompt();
 vector<string> parseInputViaSpaces(string readChar,char *temp[Max]);
 void executeCommand(char *temp[]);

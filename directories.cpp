@@ -12,6 +12,6 @@
 #define Max 4096
 using namespace std;
 void readDirectory(vector<string> tokens,char *temp[]){
-	if(tokens.size() == 1 || tokens[1] == "~") chdir("/home");
+	if(tokens.size() == 1 || tokens[1] == "~") chdir(getenv("HOME"));
 	else chdir(temp[1]);
 }
