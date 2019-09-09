@@ -12,4 +12,5 @@
 
 using namespace std;
 vector<pair<string,string>> createAliases(vector<string> tokens,vector<pair<string,string>> aliasesCreated);
-long long checkAliases(vector<string> tokens,vector<pair<string,string>> aliasesCreated);
+vector<string> checkAliases(vector<string> tokens,vector<pair<string,string>> aliasesCreated,int *count);
+void changeArray(vector<string> tokens,char *temp[Max]);

@@ -22,3 +22,13 @@ void displayHistory(vector<string> commands){
 		}
 	}
 }
+void displayCommand(vector<string> tokens){
+	if(tokens.size() == 0) cout<<" "<<endl;
+	else{
+		for(int i=1;i< tokens.size();i++){
+			tokens[i].erase(remove( tokens[i].begin(), tokens[i].end(), '\"' ),tokens[i].end());			
+			cout<<tokens[i]<<" ";
+		}
+		cout<<endl;
+	}
+}

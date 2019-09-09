@@ -19,16 +19,21 @@ vector<pair<string,string>> createAliases(vector<string> tokens , vector<pair<st
 	return aliasesCreated;
 }
 
-long long checkAliases(vector<string> tokens,vector<pair<string,string>> aliasesCreated){
-	long long count = 0;
+vector<string> checkAliases(vector<string> tokens,vector<pair<string,string>> aliasesCreated,int *count){
 	for(int j=0;j< tokens.size();j++){
 		for(int i=0;i< aliasesCreated.size();i++){
 			if(tokens[j] == aliasesCreated[i].first){
 				tokens[j] = aliasesCreated[i].second;
-				count++;
+				++*count;
 			}
 		}		
 	}
-	return count;
+	return tokens;
 }	
 
+void changeArray(vector<string> tokens,char *temp[Max]){
+	int i = 0;
+	for (auto it = tokens.begin(); it != tokens.end(); ++it)
+    	temp[i++] = const_cast<char*>(it->c_str());
+  	temp[i] = NULL;
+}

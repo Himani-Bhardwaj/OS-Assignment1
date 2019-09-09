@@ -12,3 +12,4 @@
 
 using namespace std;
 void displayHistory(vector<string> commands);
+void displayCommand(vector<string> tokens);

@@ -21,7 +21,7 @@
 #include "history.h"
 #include "trie.h"
 #define Max 4096
-
+int exitStatus;
 using namespace std;
 extern char **environ;
 char *env[100];
@@ -32,7 +32,7 @@ int main(){
 	trie trie;
 	node *root = trie.createNode();
 	trie.createTrieOnCurrentWorkingDirectory(root,getcwd(dirName,Max));
-   	//trie.autoComplete(root,"c");
+   	int parentPid = getpid();
 	enableRawInputMode();	
 	environ  = env;
 	int background =0,status,pId;
@@ -54,28 +54,29 @@ int main(){
 		vector<string> tokens;
 		vector<string> commandForPipes;
 		char *temp[Max];
-		int count = 0,fd;
+		int count = 0,fd,i=0;
 		displayPrompt();	
 		string readChar="";
 		string file="";
 		char buffer;
 		long long n1;
 		while ( (buffer = getchar()) != '\n'){
+			readChar += buffer;
 			if(buffer == ' '){
 				file="";
 			}
 			else if(buffer == '\t'){
 				trie.autoComplete(root,file);
 			}
-			else if(buffer == '\b'){
+			else if((int)buffer == 127){
 				 cout<<"backspace";
+				readChar.pop_back();
 			}
 			else{	
-		       		readChar += buffer;
+		       		
 				file += buffer;
 			}
-		}	
-	readChar += '\0';
+		}
 		commands.push_back(readChar);
 		commandForPipes = parseCommandForPipes(readChar);
 		if(commandForPipes.size() > 1){
@@ -83,17 +84,21 @@ int main(){
 		}
 		else{
 			tokens = parseInputViaSpaces(readChar,temp);
-			if(checkBackground(tokens)) {
+			if(tokens[0] == "exit"){
+				_Exit(10);
+			}
+			else if(checkBackground(tokens)) {
 				background =1; 
 			}
 			else background = 0;
 			pId = fork();
 			if( pId == 0 ){
-				count = checkAliases(tokens,aliasesCreated);
+				tokens=checkAliases(tokens,aliasesCreated,&count);
 				if(count > 1){
-					cout<<"Unknown Command"<<endl;
+					cout<<"alias can't be processed"<<endl;
 				}
-				else{						
+				else{	
+					changeArray(tokens,temp);					
 					if(background == 1){
 						bgProcessId = handleChildBackground(tokens,temp,bgProcessId,pId);
 					}
@@ -104,6 +109,7 @@ int main(){
 					}
 					else if(tokens[0] == "alias"){
 						aliasesCreated = createAliases(tokens,aliasesCreated);
+						
 					}
 					else if(checkRedirectCrietria(tokens)){
 						redirectIOToFile(tokens,temp);
@@ -111,9 +117,17 @@ int main(){
 					else if(tokens[0] == "fg"){			
 						//foregroundHandler(tokens);		
 						}
-					else if(tokens[0] == "history"){			
-						displayHistory(commands);	
+					else if(tokens[0] == "history"){
+							displayHistory(commands);	
 						}
+					else if(tokens[0] == "echo"){
+							if(tokens[1] == "$$")
+								cout<<parentPid<<endl;
+							else if(tokens[1] == "$?")
+								cout<<exitStatus<<endl;
+							else displayCommand(tokens);	
+						}
+					
 					else executeCommand(temp);
 				}
 			}
@@ -121,7 +135,10 @@ int main(){
 				if (background) {
 					handleParentBackground(pId);
 				} else { 
-					wait(0);
+					waitpid(pId, &status, 0);
+					if(WIFEXITED(status)){
+						exitStatus=WEXITSTATUS(status);
+					}
 				} 		
 			}
 		}

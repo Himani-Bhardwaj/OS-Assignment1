@@ -47,7 +47,7 @@ void bashrc :: createBashrc(string readFile,string outFile){
 		while ( (n1 = read(fd1, &buffer, 1)) > 0){
 		       	if(buffer != '\n') {readLine += buffer;}
 			else{
-				string toFile = "HOSTNAME = "+ readLine +"\n";
+				string toFile = "HOSTNAME = "+ readLine +"\n"+"PS1 = himani"+"\n";
 				if(write(fd2, toFile.c_str(), toFile.size()) != toFile.size()){
 					write(2, "There was an error writing to testfile.txt\n", 43);			
 				}
@@ -81,9 +81,10 @@ void bashrc :: readBashRc(string readFile){
 				string word;
 				while(getline(s, word, '=')) userLine.push_back(word);
 				if(userLine[0] == "PATH") setenv("PATH",userLine[1].c_str(),1);
-				else if(userLine[0] == "HOME") setenv("HOME",userLine[1].c_str(),1);
-				else if(userLine[0] == "HOSTNAME") setenv("HOSTNAME",userLine[1].c_str(),1);
-				else if(userLine[0] == "USER") setenv("USER",userLine[1].c_str(),1);			
+				else if(userLine[0] == "HOME ") setenv("HOME",userLine[1].c_str(),1);
+				else if(userLine[0] == "HOSTNAME ") setenv("HOSTNAME",userLine[1].c_str(),1);
+				else if(userLine[0] == "USER ") setenv("USER",userLine[1].c_str(),1);
+				else if(userLine[0] == "PS1 ") setenv("PS1",userLine[1].c_str(),1);			
 				readLine="";
 				userLine.clear();	
 			}	

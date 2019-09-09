@@ -40,10 +40,9 @@ string trie :: autoComplete(node *root, string value){
 		else root = root->children[index];
 	}
 	 getAllList(root,value);
-	return "String Displayed";
 }
 void trie :: getAllList(node *root,string value){
-	if(root == NULL) return;	
+	if(root == NULL) return; 	
 	if(root->isEndOfString == 0){
 		for(int i=0;i< ALPHABET_SIZE;i++)
 		{		
@@ -55,7 +54,7 @@ void trie :: getAllList(node *root,string value){
 		}
 	}
 	else {
-		cout<<value<<endl;
+		cout << value <<endl;
 		}
 }
 void trie :: createTrieOnCurrentWorkingDirectory(node *root,char *value){

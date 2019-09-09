@@ -23,12 +23,12 @@ void enableRawInputMode(){
 void displayPrompt(){
 	uid_t uid = getuid();
 	if(to_string(uid) == "0")
-		cout<<"Prompt/ ";
-	else cout<<"Prompt# ";
+		cout<<getenv("PS1")<<"# ";
+	else cout<<getenv("PS1")<<"$ ";
 }
 void executeCommand(char *temp[]){
 	if(execvp(temp[0],temp) < 0)
-		printf("unknown command\n");
+		exit(127);
 	else execvp(temp[0],temp);
 }
 vector<string> parseInputViaSpaces(string readChar,char *temp[Max]){

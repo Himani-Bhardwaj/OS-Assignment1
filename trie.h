@@ -8,6 +8,7 @@ class node{
 	node *children[ALPHABET_SIZE];
 };
 class trie : public node{
+	vector<string> fileNames;	
 	public:	
 	node* createNode();
 	bool searchNode(node *root, string value);
