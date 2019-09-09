@@ -31,7 +31,7 @@ char *dirName;
 int main(){
 	trie trie;
 	node *root = trie.createNode();
-	trie.createTrieOnCurrentWorkingDirectory(root,getcwd(dirName,Max));
+	vector<string> fileNames;
    	int parentPid = getpid();
 	enableRawInputMode();	
 	environ  = env;
@@ -48,6 +48,15 @@ int main(){
 	}
 	close(fd1);
 	bash.readBashRc("bashrc.txt");
+	string path = getenv("PATH");
+	path.erase(remove( path.begin(), path.end(), '\"' ),path.end());
+	stringstream s(path);
+				string word;
+	while(getline(s, word, ':')) 
+	{
+		//trie.createTrieOnCurrentWorkingDirectory(root,getcwd(dirName,Max));
+		trie.createTrieOnCurrentWorkingDirectory(root,(char*)word.c_str());
+	}
 	variousSignalsHandled();
 	while(1){
 		background = 0; 
@@ -62,15 +71,18 @@ int main(){
 		long long n1;
 		while ( (buffer = getchar()) != '\n'){
 			readChar += buffer;
-			if(buffer == ' '){
+			/*if(buffer == ' '){
 				file="";
-			}
-			else if(buffer == '\t'){
+			}*/
+			if(buffer == '\t'){
 				trie.autoComplete(root,file);
+				readChar += '\n';
 			}
-			else if((int)buffer == 127){
-				 cout<<"backspace";
+			else if(buffer == 0x7f){
+				cout<<'\b';cout<<'\b';cout<<'\b';
 				readChar.pop_back();
+				cin.clear();
+				fflush(stdin);
 			}
 			else{	
 		       		
