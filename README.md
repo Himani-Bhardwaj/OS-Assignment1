@@ -1,4 +1,4 @@
-#POSIX SHELL
+# POSIX SHELL
 POSIX compatible shell with a subset of feature support of default linux shell.
 
 Implemented Features:
